@@ -42,8 +42,7 @@ if uploaded:
         c1, c2, c3 = st.columns(3)
         c1.metric("Medicines", len(df))
         c2.metric("Low / critical", int((df["Stock_Status"] != "OK").sum()))
-        c3.metric("Estimated reorder cost", f"KSh {df['Estimated_Reorder_Cost'].sum():,.0f}")
-
+        c3.metric("Estimated reorder cost", f"${df['Estimated_Reorder_Cost'].sum():,.2f}")
         st.subheader("Reorder priorities")
         priority = df[df["Stock_Status"] != "OK"].copy()
         priority["Priority"] = priority["Stock_Status"].map({"CRITICAL": 1, "LOW": 2})
