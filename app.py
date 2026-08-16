@@ -75,63 +75,106 @@ if uploaded:
             help="If supplied, the app uses Gemini to explain the reorder priorities. Leave blank to use the built-in rule-based summary."
         )
 
-        if st.button("Generate inventory recommendation", type="primary"):
-            if priority.empty:
-                st.info("There are no low-stock items requiring a recommendation.")
-            elif api_key:
-                try:
-                    from google import genai
-                    client = genai.Client(api_key=api_key)
+        if st.bif st.button("Generate inventory recommendation", type="primary"):
+    if priority.empty:
+        st.info("There are no low-stock items requiring a recommendation.")
 
-                    records = priority[[
-                        "Medicine", "Quantity", "Minimum_Stock",
-                        "Stock_Status", "Suggested_Reorder"
-                    ]].to_dict(orient="records")
+    elif api_key:
+        try:
+            from google import genai
 
-                    prompt = f"""
-You are an inventory assistant. Review this pharmacy inventory data:
+            client = genai.Client(api_key=api_key)
+
+            records = priority[
+                [
+                    "Medicine",
+                    "Quantity",
+                    "Minimum_Stock",
+                    "Stock_Status",
+                    "Suggested_Reorder",
+                    "Unit_Price",
+                    "Estimated_Reorder_Cost",
+                ]
+            ].to_dict(orient="records")
+
+            prompt = f"""
+You are a pharmacy inventory assistant.
+
+Review the following pharmacy inventory data:
+
 {json.dumps(records, indent=2)}
 
-Give a concise operational recommendation. Identify the most urgent items,
-explain why they are urgent, and suggest what the pharmacist/store manager
-should check before ordering. Do not diagnose patients or recommend treatment.
+Give a concise operational inventory recommendation.
+
+For every medicine requiring action:
+1. State the medicine name.
+2. State the current quantity.
+3. State the minimum stock level.
+4. State whether it is CRITICAL or LOW.
+5. State the suggested reorder quantity.
+6. State the estimated reorder cost.
+
+Prioritize CRITICAL items first, followed by LOW items.
+
+Do not diagnose patients or recommend treatment.
+Focus only on inventory management and purchasing priorities.
 """
-                    response = client.models.generate_content(
-                        model="gemini-2.5-flash",
-                        contents=prompt
-                    )
-                    st.write(response.text)
-                except Exception as e:
-                    st.warning("The AI service could not be reached, so the app generated a local recommendation instead.")
-                    st.write("Check the Gemini API key and internet connection.")
-            else:
-                critical = priority[priority["Stock_Status"] == "CRITICAL"]["Medicine"].tolist()
-                low = priority[priority["Stock_Status"] == "LOW"]["Medicine"].tolist()
 
-                if critical:
-                    st.error("Immediate attention: " + ", ".join(critical))
-                if low:
-                    st.warning("Reorder soon: " + ", ".join(low))
-
-                st.write(
-                    "The assistant prioritizes medicines with zero stock first, "
-                    "followed by medicines below their minimum stock level. "
-                    "The suggested reorder quantity targets approximately twice "
-                    "the minimum stock level."
-                )
-
-        with st.expander("How this project uses AI"):
-            st.write(
-                "The core inventory calculations are deterministic rules so that "
-                "stock thresholds remain transparent. When a Gemini API key is "
-                "provided, Gemini converts the structured inventory findings into "
-                "a concise human-readable operational recommendation."
+            response = client.models.generate_content(
+                model="gemini-2.5-flash",
+                contents=prompt
             )
 
-    except Exception as exc:
-        st.error(f"Could not read the file: {exc}")
-else:
-    st.info("Upload an inventory CSV to begin.")
+            st.markdown("### AI Inventory Recommendation")
+            st.write(response.text)
 
-st.divider()
-st.caption("Prototype for portfolio / AI Showcase demonstration. Not a substitute for pharmacy inventory policies or professional judgment.")
+        except Exception:
+            st.warning(
+                "The AI service could not be reached, so the app generated "
+                "a local inventory recommendation instead."
+            )
+
+            st.markdown("### Inventory Recommendation")
+
+            for _, row in priority.iterrows():
+                if row["Stock_Status"] == "CRITICAL":
+                    st.error(
+                        f"*{row['Medicine']} — CRITICAL*\n\n"
+                        f"Current stock: {int(row['Quantity'])} | "
+                        f"Minimum stock: {int(row['Minimum_Stock'])}\n\n"
+                        f"Suggested reorder: *{int(row['Suggested_Reorder'])} units*\n\n"
+                        f"Estimated reorder cost: "
+                        f"*${row['Estimated_Reorder_Cost']:,.2f}*"
+                    )
+                else:
+                    st.warning(
+                        f"*{row['Medicine']} — LOW STOCK*\n\n"
+                        f"Current stock: {int(row['Quantity'])} | "
+                        f"Minimum stock: {int(row['Minimum_Stock'])}\n\n"
+                        f"Suggested reorder: *{int(row['Suggested_Reorder'])} units*\n\n"
+                        f"Estimated reorder cost: "
+                        f"*${row['Estimated_Reorder_Cost']:,.2f}*"
+                    )
+
+    else:
+        st.markdown("### Inventory Recommendation")
+
+        for _, row in priority.iterrows():
+            if row["Stock_Status"] == "CRITICAL":
+                st.error(
+                    f"*{row['Medicine']} — CRITICAL*\n\n"
+                    f"Current stock: {int(row['Quantity'])} | "
+                    f"Minimum stock: {int(row['Minimum_Stock'])}\n\n"
+                    f"Suggested reorder: *{int(row['Suggested_Reorder'])} units*\n\n"
+                    f"Estimated reorder cost: "
+                    f"*${row['Estimated_Reorder_Cost']:,.2f}*"
+                )
+            else:
+                st.warning(
+                    f"*{row['Medicine']} — LOW STOCK*\n\n"
+                    f"Current stock: {int(row['Quantity'])} | "
+                    f"Minimum stock: {int(row['Minimum_Stock'])}\n\n"
+                    f"Suggested reorder: *{int(row['Suggested_Reorder'])} units*\n\n"
+                    f"Estimated reorder cost: "
+                    f"*${row['Estimated_Reorder_Cost']:,.2f}*"
+                )
