@@ -52,21 +52,21 @@ if uploaded:
             st.success("No medicines are currently below their minimum stock level.")
         else:
             display_df = priority[
-    [
-        "Medicine", "Quantity", "Minimum_Stock",
-        "Stock_Status", "Suggested_Reorder",
-        "Unit_Price", "Estimated_Reorder_Cost"
-    ]
-].style.format({
-    "Unit_Price": "${:,.2f}",
-    "Estimated_Reorder_Cost": "${:,.2f}"
-})
+            [
+                "Medicine", "Quantity", "Minimum_Stock",
+                "Stock_Status", "Suggested_Reorder",
+                "Unit_Price", "Estimated_Reorder_Cost"
+            ]
+        ].style.format({
+            "Unit_Price": "${:,.2f}",
+            "Estimated_Reorder_Cost": "${:,.2f}"
+        })
 
-st.dataframe(
-    display_df,
-    use_container_width=True,
-    hide_index=True
-)
+        st.dataframe(
+            display_df,
+            use_container_width=True,
+            hide_index=True
+        )
 
         st.subheader("AI explanation")
         api_key = st.text_input(
