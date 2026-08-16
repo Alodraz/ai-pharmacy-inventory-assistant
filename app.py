@@ -75,7 +75,7 @@ if uploaded:
             help="If supplied, the app uses Gemini to explain the reorder priorities. Leave blank to use the built-in rule-based summary."
         )
 
-        if st.button("Generate inventory recommendation", type="primary"):
+if st.button("Generate inventory recommendation", type="primary"):
     if priority.empty:
         st.info("There are no low-stock items requiring a recommendation.")
 
