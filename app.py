@@ -55,7 +55,7 @@ c1, c2, c3 = st.columns(3)
         if priority.empty:
             st.success("No medicines are currently below their minimum stock level.")
         else:
-            display_df = priority[
+            disp   lay_df = priority[
             [
                 "Medicine", "Quantity", "Minimum_Stock",
                 "Stock_Status", "Suggested_Reorder",
