@@ -41,18 +41,24 @@ if uploaded:
     except Exception as exc:
         st.error(f"Could not read the inventory CSV: {exc}")
         st.stop()
-st.subheader("Inventory overview")
+    st.subheader("Inventory overview")
 
     c1, c2, c3 = st.columns(3)
+
     c1.metric("Medicines", len(df))
     c2.metric("Low / critical", int((df["Stock_Status"] != "OK").sum()))
-    c3.metric("Estimated reorder cost", f"${df["Estimated_Reorder_Cost"].sum():,.2f}")
+    c3.metric(
+        "Estimated reorder cost",
+        f"${df['Estimated_Reorder_Cost'].sum():,.2f}"
+    )
 
     st.subheader("Reorder priorities")
 
     priority = df[df["Stock_Status"] != "OK"].copy()
-    priority["Priority"] = priority["Stock_Status"].map({"CRITICAL": 1, "LOW": 2})
-    priority = priority.sort_values(["Priority", "Quantity"])
+    priority["priority"] = priority["Stock_Status"].map(
+        {"CRITICAL": 1, "LOW": 2}
+    )
+    priority = priority.sort_values(["priority", "Quantity"])
 
     if priority.empty:
         st.success("No medicines are currently below their minimum stock level.")
@@ -63,40 +69,17 @@ st.subheader("Inventory overview")
                 "Quantity",
                 "Minimum_Stock",
                 "Stock_Status",
-                "Suggested_Reorder",
                 "Unit_Price",
+                "Suggested_Reorder",
                 "Estimated_Reorder_Cost",
             ]
-        ].copy()st.subheader("Inventory overview")
-c1, c2, c3 = st.columns(3)
-        c1.metric("Medicines", len(df))
-        c2.metric("Low / critical", int((df["Stock_Status"] != "OK").sum()))
-        c3.metric("Estimated reorder cost", f"${df['Estimated_Reorder_Cost'].sum():,.2f}")
-        st.subheader("Reorder priorities")
-        priority = df[df["Stock_Status"] != "OK"].copy()
-        priority["Priority"] = priority["Stock_Status"].map({"CRITICAL": 1, "LOW": 2})
-        priority = priority.sort_values(["Priority", "Quantity"])
-
-        if priority.empty:
-            st.success("No medicines are currently below their minimum stock level.")
-        else:
-            disp   lay_df = priority[
-            [
-                "Medicine", "Quantity", "Minimum_Stock",
-                "Stock_Status", "Suggested_Reorder",
-                "Unit_Price", "Estimated_Reorder_Cost"
-            ]
-        ].style.format({
-            "Unit_Price": "${:,.2f}",
-            "Estimated_Reorder_Cost": "${:,.2f}"
-        })
+        ]
 
         st.dataframe(
             display_df,
             use_container_width=True,
             hide_index=True
         )
-
         st.subheader("AI explanation")
         api_key = st.text_input(
             "Optional Gemini API key",
