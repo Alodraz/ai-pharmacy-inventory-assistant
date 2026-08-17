@@ -42,6 +42,32 @@ if uploaded:
         st.error(f"Could not read the inventory CSV: {exc}")
         st.stop()
 st.subheader("Inventory overview")
+
+    c1, c2, c3 = st.columns(3)
+    c1.metric("Medicines", len(df))
+    c2.metric("Low / critical", int((df["Stock_Status"] != "OK").sum()))
+    c3.metric("Estimated reorder cost", f"${df["Estimated_Reorder_Cost"].sum():,.2f}")
+
+    st.subheader("Reorder priorities")
+
+    priority = df[df["Stock_Status"] != "OK"].copy()
+    priority["Priority"] = priority["Stock_Status"].map({"CRITICAL": 1, "LOW": 2})
+    priority = priority.sort_values(["Priority", "Quantity"])
+
+    if priority.empty:
+        st.success("No medicines are currently below their minimum stock level.")
+    else:
+        display_df = priority[
+            [
+                "Medicine",
+                "Quantity",
+                "Minimum_Stock",
+                "Stock_Status",
+                "Suggested_Reorder",
+                "Unit_Price",
+                "Estimated_Reorder_Cost",
+            ]
+        ].copy()st.subheader("Inventory overview")
 c1, c2, c3 = st.columns(3)
         c1.metric("Medicines", len(df))
         c2.metric("Low / critical", int((df["Stock_Status"] != "OK").sum()))
