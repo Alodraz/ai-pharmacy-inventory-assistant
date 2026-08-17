@@ -36,10 +36,14 @@ if uploaded:
             axis=1
         )
         df["Suggested_Reorder"] = (df["Minimum_Stock"] * 2 - df["Quantity"]).clip(lower=0)
-        df["Estimated_Reorder_Cost"] = df["Suggested_Reorder"] * df["Unit_Price"]
+df["Estimated_Reorder_Cost"] = df["Suggested_Reorder"] * df["Unit_Price"]
 
-        st.subheader("Inventory overview")
-        c1, c2, c3 = st.columns(3)
+except Exception as exc:
+    st.error(f"Could not read the inventory CSV: {exc}")
+    st.stop()
+
+st.subheader("Inventory overview")
+c1, c2, c3 = st.columns(3)
         c1.metric("Medicines", len(df))
         c2.metric("Low / critical", int((df["Stock_Status"] != "OK").sum()))
         c3.metric("Estimated reorder cost", f"${df['Estimated_Reorder_Cost'].sum():,.2f}")
