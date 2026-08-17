@@ -36,12 +36,11 @@ if uploaded:
             axis=1
         )
         df["Suggested_Reorder"] = (df["Minimum_Stock"] * 2 - df["Quantity"]).clip(lower=0)
-df["Estimated_Reorder_Cost"] = df["Suggested_Reorder"] * df["Unit_Price"]
+        df["Estimated_Reorder_Cost"] = df["Suggested_Reorder"] * df["Unit_Price"]
 
-except Exception as exc:
-    st.error(f"Could not read the inventory CSV: {exc}")
-    st.stop()
-
+    except Exception as exc:
+        st.error(f"Could not read the inventory CSV: {exc}")
+        st.stop()
 st.subheader("Inventory overview")
 c1, c2, c3 = st.columns(3)
         c1.metric("Medicines", len(df))
